@@ -28,6 +28,7 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
         dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
         dst_ds.SetProjection(src_ds.GetProjection())
         output_rasters[color_value] = dst_ds.GetRasterBand(1)
+        output_rasters[color_value].SetNoDataValue(0)
 
     # Loop through the raster in blocks
     for i in range(n_blocks_x):
@@ -44,7 +45,7 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
                 src_array = src_array[::resampling_factor, ::resampling_factor]
 
             for color_value in color_values:
-                mask = np.where(src_array == color_value, 1, 0).astype(np.uint8)
+                mask = np.where(src_array == color_value, color_value, 0).astype(np.uint8)
                 output_rasters[color_value].WriteArray(mask, x_start // resampling_factor, y_start // resampling_factor)
 
     # Clean up
