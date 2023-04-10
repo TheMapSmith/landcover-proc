@@ -1,3 +1,4 @@
+import os
 import glob
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -14,4 +15,11 @@ def process_input_folder(input_folder, output_folder, color_values):
     for color_value in color_values:
         color_file = os.path.join(output_folder, f"{color_value}_global.tif")
         simplified_output_file = os.path.join(output_folder, f"{color_value}_simplified.tif")
-        simplify_and_generalize(color_file, simplified_output_file)
+        
+        # Output each band raster to a TIF
+        with open(color_file, "rb") as src_tif:
+            with open(simplified_output_file, "wb") as dst_tif:
+                dst_tif.write(src_tif.read())
+
+        # Take the output TIF and pass it to the simplify function
+        simplify_and_generalize(simplified_output_file, simplified_output_file)
