@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.append("rasterproc/Lib/site-packages")
+
 from config import input_folder, output_folder, color_values
 from process_folder import process_input_folder
 
