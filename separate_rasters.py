@@ -25,15 +25,16 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
         for color_value in color_values:
             output_file = os.path.join(output_folder, f"{color_value}_global.tif")
             driver = gdal.GetDriverByName("GTiff")
-            dst_ds = driver.Create(output_file, x_resampled_size, y_resampled_size, 1, gdal.GDT_Byte, options=['COMPRESS=LZW'])
+            dst_ds = driver.Create(output_file, x_resampled_size, y_resampled_size, 1, gdal.GDT_Float32, options=['COMPRESS=LZW'])
             dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
             dst_ds.SetProjection(src_ds.GetProjection())
             output_rasters[color_value] = dst_ds.GetRasterBand(1)
-            output_rasters[color_value].SetNoDataValue(255)
+            output_rasters[color_value].SetNoDataValue(np.nan)
 
         # Loop through the raster in blocks
         for i in range(n_blocks_x):
             for j in range(n_blocks_y):
+                print(f"Processing block: {i}, {j}")
                 x_start = i * block_size * resampling_factor
                 y_start = j * block_size * resampling_factor
 
@@ -46,10 +47,8 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
                     src_array = src_array[::resampling_factor, ::resampling_factor]
 
                 for color_value in color_values:
-                    mask = np.where(src_array == color_value, color_value, 255).astype(np.uint8)
+                    mask = np.where(src_array == color_value, color_value, np.nan).astype(np.float32)
                     output_rasters[color_value].WriteArray(mask, x_start // resampling_factor, y_start // resampling_factor)
-
-                print(f"Processed block: {i}, {j}")
 
         # Clean up
         for color_value in output_rasters:
