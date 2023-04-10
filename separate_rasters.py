@@ -16,7 +16,7 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
         y_resampled_size = int(y_size / resampling_factor)
 
         # Define block size and number of blocks
-        block_size = 1024
+        block_size = 512
         n_blocks_x = int(np.ceil(x_resampled_size / block_size))
         n_blocks_y = int(np.ceil(y_resampled_size / block_size))
 
@@ -42,6 +42,7 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
                 y_block_size = min(block_size * resampling_factor, y_size - y_start)
 
                 src_array = src_band.ReadAsArray(x_start, y_start, x_block_size, y_block_size)
+                print(f"Read block ({x_start}, {y_start}): {x_block_size} x {y_block_size}")
 
                 if resampling_factor > 1:
                     src_array = src_array[::resampling_factor, ::resampling_factor]
@@ -49,6 +50,7 @@ def separate_rasters_by_color(input_file, output_folder, color_values, resamplin
                 for color_value in color_values:
                     mask = np.where(src_array == color_value, color_value, np.nan).astype(np.float32)
                     output_rasters[color_value].WriteArray(mask, x_start // resampling_factor, y_start // resampling_factor)
+                    print(f"Written block for color value {color_value}")
 
         # Clean up
         for color_value in output_rasters:
