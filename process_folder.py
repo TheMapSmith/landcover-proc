@@ -2,7 +2,7 @@ import os
 import glob
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from separate_rasters import separate_rasters_by_color
+from gdal_calc import separate_rasters_by_color
 from merge_rasters import simplify_and_generalize
 
 def process_input_folder(input_folder, output_folder, color_values):
