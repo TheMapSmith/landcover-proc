@@ -4,7 +4,7 @@ from osgeo import gdal
 import numpy as np
 from scipy.ndimage import gaussian_filter
 
-def apply_gaussian_blur(input_file, output_file, sigma, block_size=512):
+def apply_gaussian_blur(input_file, output_file, sigma, block_size=1024):
     print(f"Applying Gaussian blur to {input_file} with sigma = {sigma}...")
 
     # Open input raster
@@ -24,11 +24,15 @@ def apply_gaussian_blur(input_file, output_file, sigma, block_size=512):
             # Read input block
             src_data = src_band.ReadAsArray(j, i, block_size, block_size)
 
-            # Apply Gaussian blur
-            blurred_data = gaussian_filter(src_data, sigma=sigma)
+            if src_data is not None:
+                # Pad the edge blocks with zeros
+                padded_data = np.pad(src_data, ((0, block_size - src_data.shape[0]), (0, block_size - src_data.shape[1])), mode='constant')
 
-            # Write blurred data to output raster
-            out_band.WriteArray(blurred_data, j, i)
+                # Apply Gaussian blur
+                blurred_data = gaussian_filter(padded_data, sigma=sigma)
+
+                # Write blurred data to output raster
+                out_band.WriteArray(blurred_data[:src_data.shape[0], :src_data.shape[1]], j, i)
 
     out_band.FlushCache()
 
