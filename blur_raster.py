@@ -2,10 +2,10 @@ import os
 import glob
 from osgeo import gdal
 import numpy as np
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import uniform_filter
 
-def apply_gaussian_blur(input_file, output_file, sigma, block_size=1024):
-    print(f"Applying Gaussian blur to {input_file} with sigma = {sigma}...")
+def apply_mean_filter(input_file, output_file, filter_size, block_size=1024):
+    print(f"Applying mean filter to {input_file} with filter size = {filter_size}...")
 
     # Open input raster
     src_ds = gdal.Open(input_file)
@@ -21,18 +21,22 @@ def apply_gaussian_blur(input_file, output_file, sigma, block_size=1024):
     # Process the raster in blocks
     for i in range(0, src_ds.RasterYSize, block_size):
         for j in range(0, src_ds.RasterXSize, block_size):
+            # Calculate actual block size for edge blocks
+            actual_block_size_x = min(block_size, src_ds.RasterXSize - j)
+            actual_block_size_y = min(block_size, src_ds.RasterYSize - i)
+
             # Read input block
-            src_data = src_band.ReadAsArray(j, i, block_size, block_size)
+            src_data = src_band.ReadAsArray(j, i, actual_block_size_x, actual_block_size_y)
 
             if src_data is not None:
                 # Pad the edge blocks with zeros
                 padded_data = np.pad(src_data, ((0, block_size - src_data.shape[0]), (0, block_size - src_data.shape[1])), mode='constant')
 
-                # Apply Gaussian blur
-                blurred_data = gaussian_filter(padded_data, sigma=sigma)
+                # Apply mean filter
+                mean_filtered_data = uniform_filter(padded_data, size=filter_size)
 
-                # Write blurred data to output raster
-                out_band.WriteArray(blurred_data[:src_data.shape[0], :src_data.shape[1]], j, i)
+                # Write mean filtered data to output raster
+                out_band.WriteArray(mean_filtered_data[:src_data.shape[0], :src_data.shape[1]], j, i)
 
     out_band.FlushCache()
 
@@ -40,16 +44,18 @@ def apply_gaussian_blur(input_file, output_file, sigma, block_size=1024):
     out_ds = None
     src_ds = None
 
-    print(f"Gaussian blur applied and saved to {output_file}.")
+    print(f"Mean filter applied and saved to {output_file}.")
+
 
 input_folder = "output_folder/blur-pre"
 output_folder = "output_folder/blur-pre/post"
-sigma = 2  # Adjust the sigma value as needed
+filter_size = 5  # Adjust the filter size as needed
+block_size = 1024  # Adjust the block size as needed
 
 # Iterate through all TIFF files in the input folder
 input_files = glob.glob(os.path.join(input_folder, "*.tif"))
 
 for input_file in input_files:
     file_name = os.path.basename(input_file)
-    output_file = os.path.join(output_folder, f"blurred_{file_name}")
-    apply_gaussian_blur(input_file, output_file, sigma)
+    output_file = os.path.join(output_folder, f"mean_filtered_{file_name}")
+    apply_mean_filter(input_file, output_file, filter_size, block_size)
