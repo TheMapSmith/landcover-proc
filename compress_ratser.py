@@ -17,7 +17,7 @@ def compress_raster(input_file, output_file):
 
     print("Compression complete.")
 
-input_file = "source_folder/landcover_resampled_30km.tif"
-output_file = "input_folder/landcover_compressed_30km.tif"
+input_file = "source_folder/landcover_resampled_100km.tif"
+output_file = "input_folder/landcover_compressed_100km.tif"
 
 compress_raster(input_file, output_file)
