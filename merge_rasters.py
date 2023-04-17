@@ -2,7 +2,27 @@ import os
 from osgeo import gdal, ogr, osr
 import numpy as np
 import rasterio
+from rasterio.merge import merge
 import cv2
+
+def merge_rasters(input_files, output_folder, output_file):
+    # Read input rasters
+    input_rasters = [rasterio.open(file) for file in input_files]
+
+    # Merge rasters
+    merged_array, merged_transform = merge(input_rasters)
+
+    # Get metadata from the first input raster
+    profile = input_rasters[0].profile.copy()
+
+    # Update metadata for the merged raster
+    profile.update({"height": merged_array.shape[1], "width": merged_array.shape[2], "transform": merged_transform})
+
+    # Write merged raster to output file
+    with rasterio.open(output_file, "w", **profile) as dest:
+        dest.write(merged_array)
+
+    print(f"Merged rasters saved to {output_file}.")
 
 def custom_gaussian_filter(in_array, ksize, sigma):
     blurred_array = cv2.GaussianBlur(in_array, (ksize, ksize), sigma)
