@@ -41,9 +41,9 @@ def process_input_folder(input_folder, output_folder, color_values):
     polygonized_output = os.path.join(output_folder, "polygonized.shp")
     polygonize_raster(thresholded_raster, polygonized_output, 'value')
 
-        # Generalize the polygonized shapefile
-        # generalize_vector(shapefile_output, generalized_output, color_value)
-        print("we are not generalizing the polygons any more")
+    # Generalize the polygonized shapefile
+    # generalize_vector(shapefile_output, generalized_output, color_value)
+    print("we are not generalizing the polygons any more")
 
     # Step 3: Merge all the generalized shapefiles into one output file
     merged_output_file = os.path.join(output_folder, "merged_output.shp")
