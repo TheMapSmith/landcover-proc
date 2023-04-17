@@ -5,6 +5,19 @@ import rasterio
 from rasterio.merge import merge
 import cv2
 
+def threshold_raster(input_file, output_file, threshold_value):
+    with rasterio.open(input_file) as src:
+        src_data = src.read(1)
+
+        # Threshold the raster
+        thresholded_data = np.where(src_data >= threshold_value, src_data, src.nodata)
+
+        # Save the thresholded raster
+        profile = src.profile
+        with rasterio.open(output_file, 'w', **profile) as dst:
+            dst.write(thresholded_data, 1)
+
+
 def merge_rasters(input_files, output_folder, output_file):
     # Read input rasters
     input_rasters = [rasterio.open(file) for file in input_files]

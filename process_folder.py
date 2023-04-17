@@ -23,17 +23,23 @@ def process_input_folder(input_folder, output_folder, color_values):
         block_size = 1024  # Adjust the block size as needed
         apply_mean_filter(color_file, blurred_output, sigma, block_size)
 
-        # merge the forest rasters 
-        # input_files = ["output_folder/111_blurred.tif", "output_folder/113_blurred.tif", "output_folder/112_blurred.tif", "output_folder/114_blurred.tif", "output_folder/115_blurred.tif", "output_folder/116_blurred.tif", "output_folder/121_blurred.tif", "output_folder/123_blurred.tif", "output_folder/122_blurred.tif", "output_folder/124_blurred.tif", "output_folder/125_blurred.tif", "output_folder/126_blurred.tif"]
-        input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in color_values]
-        output_file = "output_folder/merged_raster_blurred.tif"
+    # merge the forest rasters 
+    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in color_values]
+    merged_blurred_output = os.path.join(output_folder, "merged_raster_blurred.tif")
+    merge_rasters(input_files, merged_blurred_output)
 
-        merge_rasters(input_files, output_folder, output_file)
+    # Calculate threshold value (half of the max value)
+    with rasterio.open(merged_blurred_output) as src:
+        max_value = src.read(1).max()
+    threshold_value = max_value * 0.5
 
+    # Threshold the merged raster
+    thresholded_raster = os.path.join(output_folder, "thresholded_raster.tif")
+    threshold_raster(merged_blurred_output, thresholded_raster, threshold_value)
 
-        # Polygonize raster
-        # polygonize_raster(blurred_output, shapefile_output, color_value)
-        print("we are not polygonizing the rasters any more")
+    # Polygonize the thresholded raster
+    polygonized_output = os.path.join(output_folder, "polygonized.shp")
+    polygonize_raster(thresholded_raster, polygonized_output, 'value')
 
         # Generalize the polygonized shapefile
         # generalize_vector(shapefile_output, generalized_output, color_value)
