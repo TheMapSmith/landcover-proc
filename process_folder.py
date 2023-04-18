@@ -20,7 +20,7 @@ def process_input_folder(input_folder, output_folder, color_values):
         generalized_output = os.path.join(output_folder, f"{color_value}_generalized.shp")
 
         # apply mean filter
-        sigma = 2  # Adjust the filter size as needed
+        sigma = 1  # Adjust the filter size as needed
         block_size = 1024  # Adjust the block size as needed
         apply_mean_filter(color_file, blurred_output, sigma, block_size)
 
