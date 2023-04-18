@@ -40,9 +40,13 @@ def process_input_folder(input_folder, output_folder, color_values):
         output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
         threshold_raster(input_file, output_file)
 
+    thresholded_files = [os.path.join(output_folder, f"{color}_thresholded.tif") for color in threshold_colors]
+    thresholded_files.append("forest_thresholded")
+
     # Polygonize the thresholded raster
-    polygonized_output = os.path.join(output_folder, "polygonized.shp")
-    polygonize_raster(thresholded_raster, polygonized_output, 'value')
+    for threshold in thresholded_files:
+        polygonized_output = os.path.join(output_folder, f"{threshold}_polygonized.shp")
+        polygonize_raster(threshold, polygonized_output, 'value')
 
     # Generalize the polygonized shapefile
     # generalize_vector(shapefile_output, generalized_output, color_value)
