@@ -5,9 +5,11 @@ import rasterio
 from rasterio.merge import merge
 import cv2
 
-def threshold_raster(input_file, output_file, threshold_value):
+def threshold_raster(input_file, output_file):
     with rasterio.open(input_file) as src:
         src_data = src.read(1)
+        max_value = src.read(1).max()
+        threshold_value = max_value * 0.5
 
         # Threshold the raster
         thresholded_data = np.where(src_data >= threshold_value, src_data, src.nodata)
