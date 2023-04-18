@@ -3,7 +3,8 @@ import glob
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from gdal_calc import separate_rasters_by_color
-from merge_rasters import polygonize_raster, generalize_vector, merge_shapefiles, apply_mean_filter, merge_rasters
+import rasterio
+from merge_rasters import polygonize_raster, generalize_vector, merge_shapefiles, apply_mean_filter, merge_rasters, threshold_raster
 
 def process_input_folder(input_folder, output_folder, color_values):
     global_raster_file = glob.glob(os.path.join(input_folder, "*.tif"))[0]
@@ -24,18 +25,20 @@ def process_input_folder(input_folder, output_folder, color_values):
         apply_mean_filter(color_file, blurred_output, sigma, block_size)
 
     # merge the forest rasters 
-    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in color_values]
-    merged_blurred_output = os.path.join(output_folder, "merged_raster_blurred.tif")
-    merge_rasters(input_files, merged_blurred_output)
+    forest_values= [111, 113, 112, 114, 115, 116, 121, 123, 122, 124, 125, 126]
+    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in forest_values]
+    merged_blurred_output = os.path.join(output_folder, "forest_blurred.tif")
+    merge_rasters(input_files, output_folder, merged_blurred_output)
 
-    # Calculate threshold value (half of the max value)
-    with rasterio.open(merged_blurred_output) as src:
-        max_value = src.read(1).max()
-    threshold_value = max_value * 0.5
+    # Color values that need thresholding
+    threshold_colors = [20, 30, 90, 100, 60, 40, 50, 70, 80, 200]
+    threshold_colors.append("forest")  # Adding the merged forest raster
 
-    # Threshold the merged raster
-    thresholded_raster = os.path.join(output_folder, "thresholded_raster.tif")
-    threshold_raster(merged_blurred_output, thresholded_raster, threshold_value)
+    # Apply threshold_raster for each color value
+    for color in threshold_colors:
+        input_file = os.path.join(output_folder, f"{color}_blurred.tif")
+        output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
+        threshold_raster(input_file, output_file)
 
     # Polygonize the thresholded raster
     polygonized_output = os.path.join(output_folder, "polygonized.shp")
