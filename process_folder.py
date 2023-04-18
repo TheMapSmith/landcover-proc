@@ -41,7 +41,7 @@ def process_input_folder(input_folder, output_folder, color_values):
         threshold_raster(input_file, output_file)
 
     # Create a dictionary to map threshold file basenames to color values
-    threshold_color_map = {f"{color}_thresholded": color for color in threshold_colors}
+    threshold_color_map = {str(color): color for color in threshold_colors}
     threshold_color_map["forest_thresholded"] = "forest"
     
     for color in threshold_colors:
