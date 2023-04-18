@@ -45,7 +45,7 @@ def process_input_folder(input_folder, output_folder, color_values):
 
     for threshold in thresholded_files:
         polygonized_output = os.path.join(output_folder, f"{os.path.splitext(os.path.basename(threshold))[0]}_polygonized.shp")
-        color_value = threshold_color_map[os.path.basename(threshold)]  # Get the color value from the dictionary
+        color_value = threshold_colors[os.path.basename(threshold)]  # Get the color value from the dictionary
         polygonize_raster(threshold, polygonized_output, color_value)
 
     # Generalize the polygonized shapefile
