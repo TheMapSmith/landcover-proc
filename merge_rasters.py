@@ -4,12 +4,23 @@ import numpy as np
 import rasterio
 from rasterio.merge import merge
 import cv2
+from scipy import ndimage
+
+def remove_isolated_pixels(input_file, output_file, filter_size):
+    with rasterio.open(input_file) as src:
+        src_data = src.read(1)
+        src_profile = src.profile
+
+    filtered_data = ndimage.median_filter(src_data, size=filter_size)
+
+    with rasterio.open(output_file, 'w', **src_profile) as dst:
+        dst.write(filtered_data, 1)
 
 def threshold_raster(input_file, output_file):
     with rasterio.open(input_file) as src:
         src_data = src.read(1)
         max_value = src.read(1).max()
-        threshold_value = max_value * 0.5
+        threshold_value = max_value * 0.25
 
         # Threshold the raster
         thresholded_data = np.where(src_data >= threshold_value, src_data, src.nodata)
@@ -63,7 +74,7 @@ def apply_mean_filter(input_file, output_file, sigma, no_data_value=0):
             src_data_nan[src_data_nan == no_data_value] = np.nan
 
             # Apply custom Gaussian filter
-            ksize = int(6 * sigma) + 1
+            ksize = int(16 * sigma) + 1
             gaussian_filtered_data = custom_gaussian_filter(src_data_nan, ksize=ksize, sigma=sigma)
 
             # Replace NaN values with NoData values

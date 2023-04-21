@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from gdal_calc import separate_rasters_by_color
 import rasterio
-from merge_rasters import polygonize_raster, generalize_vector, merge_shapefiles, apply_mean_filter, merge_rasters, threshold_raster
+from merge_rasters import polygonize_raster, generalize_vector, merge_shapefiles, apply_mean_filter, merge_rasters, threshold_raster, remove_isolated_pixels
 
 def process_input_folder(input_folder, output_folder, color_values):
     global_raster_file = glob.glob(os.path.join(input_folder, "*.tif"))[0]
@@ -24,9 +24,15 @@ def process_input_folder(input_folder, output_folder, color_values):
         block_size = 1024  # Adjust the block size as needed
         apply_mean_filter(color_file, blurred_output, sigma, block_size)
 
+        # Remove isolated pixels
+        filter_size = 3  # Set the filter size (3x3 neighborhood)
+        isolated_removed_output = os.path.join(output_folder, f"{color_value}_isolated_removed.tif")
+        remove_isolated_pixels(blurred_output, isolated_removed_output, filter_size)
+
+
     # merge the forest rasters 
     forest_values= [111, 113, 112, 114, 115, 116, 121, 123, 122, 124, 125, 126]
-    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in forest_values]
+    input_files = [os.path.join(output_folder, f"{color}_isolated_removed.tif") for color in color_values]
     merged_blurred_output = os.path.join(output_folder, "forest_blurred.tif")
     merge_rasters(input_files, output_folder, merged_blurred_output)
 
