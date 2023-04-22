@@ -32,23 +32,45 @@ def threshold_raster(input_file, output_file):
 
 
 def merge_rasters(input_files, output_folder, output_file):
-    # Read input rasters
-    input_rasters = [rasterio.open(file) for file in input_files]
+    print("Merging rasters...")
 
-    # Merge rasters
-    merged_array, merged_transform = merge(input_rasters)
+    output_file_path = os.path.join(output_folder, output_file)
 
-    # Get metadata from the first input raster
-    profile = input_rasters[0].profile.copy()
+    # Set NoData value to a variable, for example, -9999
+    nodata_value = -9999
 
-    # Update metadata for the merged raster
-    profile.update({"height": merged_array.shape[1], "width": merged_array.shape[2], "transform": merged_transform})
+    # Read the first raster and initialize an array to store the sum
+    ds = gdal.Open(input_files[0])
+    sum_array = ds.ReadAsArray().astype(np.float32)
+    sum_array[sum_array == 0] = np.nan
+    geotransform = ds.GetGeoTransform()
+    projection = ds.GetProjection()
+    ds = None
 
-    # Write merged raster to output file
-    with rasterio.open(output_file, "w", **profile) as dest:
-        dest.write(merged_array)
+    # Iterate over the rest of the rasters and add their values to the sum_array
+    for input_file in input_files[1:]:
+        ds = gdal.Open(input_file)
+        data_array = ds.ReadAsArray().astype(np.float32)
+        data_array[data_array == 0] = np.nan
+        sum_array = np.nansum([sum_array, data_array], axis=0)
+        ds = None
 
-    print(f"Merged rasters saved to {output_file}.")
+    # Replace NaN values with the NoData value
+    sum_array[np.isnan(sum_array)] = nodata_value
+
+    # Create the output raster file and write the sum_array
+    driver = gdal.GetDriverByName("GTiff")
+    out_ds = driver.Create(output_file_path, sum_array.shape[1], sum_array.shape[0], 1, gdal.GDT_Float32)
+    out_ds.SetGeoTransform(geotransform)
+    out_ds.SetProjection(projection)
+    out_band = out_ds.GetRasterBand(1)
+    out_band.SetNoDataValue(nodata_value)
+    out_band.WriteArray(sum_array)
+
+    out_band.FlushCache()
+    out_ds = None
+
+    print("Merging rasters complete.")
 
 def custom_gaussian_filter(in_array, ksize, sigma):
     blurred_array = cv2.GaussianBlur(in_array, (ksize, ksize), sigma)
