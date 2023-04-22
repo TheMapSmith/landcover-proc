@@ -47,11 +47,13 @@ def merge_rasters(input_files, output_folder, output_file, nodata_value=-9999):
         meta = src.meta
 
     # Update metadata for the output raster
-    meta.update(dtype=merged_array.dtype, nodata=nodata_value, transform=merged_transform, width=merged_array.shape[2], height=merged_array.shape[1])
+    meta.update(dtype=rasterio.float32, nodata=nodata_value, transform=merged_transform, width=merged_array.shape[2], height=merged_array.shape[1])
 
     # Write the merged raster to the output file
     with rasterio.open(os.path.join(output_folder, output_file), "w", **meta) as dest:
         dest.write(merged_array)
+        dest.write_mask(merged_array != nodata_value)  # Set the mask band based on the NoData value
+
 
     print(f"Merged rasters saved to {os.path.join(output_folder, output_file)}")
 
