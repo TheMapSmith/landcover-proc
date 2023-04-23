@@ -56,18 +56,16 @@ def process_input_folder(input_folder, output_folder, color_values):
     threshold_color_map = {str(color): color for color in threshold_colors}
     threshold_color_map["forest_blurred"] = 999  # Use the unique integer value for the forest class
 
-    
+    # Apply threshold_raster for each color value
     for color in threshold_colors:
         if color == "forest_blurred":
-            threshold_file = os.path.join(output_folder, f"{color}_thresholded.tif")
-            color_value = threshold_color_map[color]
+            input_file = os.path.join(output_folder, f"{color}.tif")
+        elif color in forest_values:
+            input_file = os.path.join(output_folder, f"{color}_blurred.tif")
         else:
-            threshold_file = os.path.join(output_folder, f"{color}_thresholded.tif")
-            color_value = threshold_color_map[str(color)]  # Get the color value from the dictionary
-
-        polygonized_output = os.path.join(output_folder, f"{color_value}_polygonized.shp")
-        polygonize_raster(threshold_file, polygonized_output, color_value)
-
+            input_file = os.path.join(output_folder, f"{color}_polygonized.tif")
+        output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
+        threshold_raster(input_file, output_file)
 
     # Generalize the polygonized shapefile
     # generalize_vector(shapefile_output, generalized_output, color_value)
