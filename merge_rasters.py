@@ -47,7 +47,7 @@ def merge_rasters(input_files, output_folder, output_file):
     # Read the first raster and initialize an array to store the sum
     ds = gdal.Open(input_files[0])
     sum_array = ds.ReadAsArray().astype(np.float32)
-    sum_array[sum_array == 0] = np.nan
+    sum_array[sum_array == nodata_value] = np.nan
     geotransform = ds.GetGeoTransform()
     projection = ds.GetProjection()
     ds = None
@@ -56,7 +56,7 @@ def merge_rasters(input_files, output_folder, output_file):
     for input_file in input_files[1:]:
         ds = gdal.Open(input_file)
         data_array = ds.ReadAsArray().astype(np.float32)
-        data_array[data_array == 0] = np.nan
+        data_array[data_array == nodata_value] = np.nan
         sum_array = np.nansum([sum_array, data_array], axis=0)
         ds = None
 
