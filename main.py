@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append("rasterproc/Lib/site-packages")
 
-from config import input_folder, output_folder, color_values
+from config import * 
 from process_folder import process_input_folder
 
 if not os.path.exists(output_folder):

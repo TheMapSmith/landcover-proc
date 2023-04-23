@@ -1,6 +1,6 @@
 import os
 import glob
-from config import forest_values
+from config import *
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from gdal_calc import separate_rasters_by_color
