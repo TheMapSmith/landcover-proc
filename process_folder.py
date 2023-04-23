@@ -1,5 +1,6 @@
 import os
 import glob
+from config import forest_values
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from gdal_calc import separate_rasters_by_color
@@ -32,7 +33,6 @@ def process_input_folder(input_folder, output_folder, color_values):
 
 
     # merge the forest rasters 
-    forest_values = [111, 113, 112, 114, 115, 116, 121, 122, 124, 125, 126]
     input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in color_values]
     merged_blurred_output = "forest_blurred.tif"
     merge_rasters(input_files, output_folder, merged_blurred_output)
