@@ -38,11 +38,17 @@ def process_input_folder(input_folder, output_folder, color_values):
 
     # Color values that need thresholding
     threshold_colors = [20, 30, 90, 100, 60, 40, 50, 70, 80, 200]
-    threshold_colors.append("forest")  # Adding the merged forest raster
+
+    # Add the merged forest raster for thresholding
+    threshold_colors.append("forest_blurred")  # Adding the merged forest raster
+
 
     # Apply threshold_raster for each color value
     for color in threshold_colors:
-        input_file = os.path.join(output_folder, f"{color}_blurred.tif")
+        if color == "forest_blurred":
+            input_file = os.path.join(output_folder, f"{color}.tif")
+        else:
+            input_file = os.path.join(output_folder, f"{color}_blurred.tif")
         output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
         threshold_raster(input_file, output_file)
 
@@ -51,9 +57,14 @@ def process_input_folder(input_folder, output_folder, color_values):
     threshold_color_map["forest_thresholded"] = "forest"
     
     for color in threshold_colors:
-        threshold_file = os.path.join(output_folder, f"{color}_thresholded.tif")
-        polygonized_output = os.path.join(output_folder, f"{color}_polygonized.shp")
-        color_value = threshold_color_map[str(color)]  # Get the color value from the dictionary
+        if color == "forest_blurred":
+            threshold_file = os.path.join(output_folder, f"{color}_thresholded.tif")
+            color_value = "forest"
+        else:
+            threshold_file = os.path.join(output_folder, f"{color}_thresholded.tif")
+            color_value = threshold_color_map[str(color)]  # Get the color value from the dictionary
+
+        polygonized_output = os.path.join(output_folder, f"{color_value}_polygonized.shp")
         polygonize_raster(threshold_file, polygonized_output, color_value)
 
     # Generalize the polygonized shapefile
