@@ -42,28 +42,12 @@ def process_input_folder(input_folder, output_folder, color_values):
     # Add the merged forest raster for thresholding
     threshold_colors.append("forest_blurred")  # Adding the merged forest raster
 
-
     # Apply threshold_raster for each color value
     for color in threshold_colors:
         if color == "forest_blurred":
             input_file = os.path.join(output_folder, f"{color}.tif")
         else:
             input_file = os.path.join(output_folder, f"{color}_blurred.tif")
-        output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
-        threshold_raster(input_file, output_file)
-
-    # Create a dictionary to map threshold file basenames to color values
-    threshold_color_map = {str(color): color for color in threshold_colors}
-    threshold_color_map["forest_blurred"] = 999  # Use the unique integer value for the forest class
-
-    # Apply threshold_raster for each color value
-    for color in threshold_colors:
-        if color == "forest_blurred":
-            input_file = os.path.join(output_folder, f"{color}.tif")
-        elif color in forest_values:
-            input_file = os.path.join(output_folder, f"{color}_blurred.tif")
-        else:
-            input_file = os.path.join(output_folder, f"{color}_polygonized.tif")
         output_file = os.path.join(output_folder, f"{color}_thresholded.tif")
         threshold_raster(input_file, output_file)
 
