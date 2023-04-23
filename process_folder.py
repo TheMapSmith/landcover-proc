@@ -31,12 +31,10 @@ def process_input_folder(input_folder, output_folder, color_values):
             block_size = 1024  # Adjust the block size as needed
             apply_mean_filter(isolated_removed_output, blurred_output, sigma, block_size)
 
-
-    # merge the forest rasters 
-    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in color_values]
+    # merge the forest rasters
+    input_files = [os.path.join(output_folder, f"{color}_blurred.tif") for color in forest_values]
     merged_blurred_output = "forest_blurred.tif"
     merge_rasters(input_files, output_folder, merged_blurred_output)
-
 
     # Color values that need thresholding
     threshold_colors = [20, 30, 90, 100, 60, 40, 50, 70, 80, 200]
