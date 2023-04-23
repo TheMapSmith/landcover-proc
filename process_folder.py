@@ -24,10 +24,12 @@ def process_input_folder(input_folder, output_folder, color_values):
         filter_size = 3  # Set the filter size (3x3 neighborhood)
         remove_isolated_pixels(color_file, isolated_removed_output, filter_size)
 
-        # apply mean filter
-        sigma = 1  # Adjust the filter size as needed
-        block_size = 1024  # Adjust the block size as needed
-        apply_mean_filter(isolated_removed_output, blurred_output, sigma, block_size)
+        # apply mean filter only to forest rasters
+        if color_value in forest_values:
+            sigma = 1  # Adjust the filter size as needed
+            block_size = 1024  # Adjust the block size as needed
+            apply_mean_filter(isolated_removed_output, blurred_output, sigma, block_size)
+
 
     # merge the forest rasters 
     forest_values = [111, 113, 112, 114, 115, 116, 121, 122, 124, 125, 126]
