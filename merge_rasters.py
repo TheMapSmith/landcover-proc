@@ -33,33 +33,50 @@ def threshold_raster(input_file, output_file):
 
 from rasterio.merge import merge
 
-def merge_rasters(input_files, output_folder, output_file, nodata_value=-9999):
+from osgeo import gdal
+import numpy as np
+
+def merge_rasters(input_files, output_folder, output_file):
     print("Merging rasters...")
 
-    # Read all input rasters into a list
-    raster_sources = [rasterio.open(file) for file in input_files]
+    output_file_path = os.path.join(output_folder, output_file)
 
-    # Merge the rasters
-    merged_array, merged_transform = merge(raster_sources, nodata=nodata_value)
+    # Set NoData value to a variable, for example, -9999
+    nodata_value = -9999
 
-    # Get metadata from the first input raster
-    with rasterio.open(input_files[0]) as src:
-        meta = src.meta
+    # Read the first raster and initialize an array to store the sum
+    ds = gdal.Open(input_files[0])
+    sum_array = ds.ReadAsArray().astype(np.float32)
+    sum_array[sum_array == 0] = np.nan
+    geotransform = ds.GetGeoTransform()
+    projection = ds.GetProjection()
+    ds = None
 
-    # Update metadata for the output raster
-    meta.update(dtype=rasterio.float32, nodata=nodata_value, transform=merged_transform, width=merged_array.shape[2], height=merged_array.shape[1])
+    # Iterate over the rest of the rasters and add their values to the sum_array
+    for input_file in input_files[1:]:
+        ds = gdal.Open(input_file)
+        data_array = ds.ReadAsArray().astype(np.float32)
+        data_array[data_array == 0] = np.nan
+        sum_array = np.nansum([sum_array, data_array], axis=0)
+        ds = None
 
-    # Write the merged raster to the output file
-    with rasterio.open(os.path.join(output_folder, output_file), "w", **meta) as dest:
-        dest.write(merged_array)
-        dest.write_mask(merged_array != nodata_value)  # Set the mask band based on the NoData value
+    # Replace NaN values with the NoData value
+    sum_array[np.isnan(sum_array)] = nodata_value
 
+    # Create the output raster file and write the sum_array
+    driver = gdal.GetDriverByName("GTiff")
+    out_ds = driver.Create(output_file_path, sum_array.shape[1], sum_array.shape[0], 1, gdal.GDT_Float32)
+    out_ds.SetGeoTransform(geotransform)
+    out_ds.SetProjection(projection)
+    out_band = out_ds.GetRasterBand(1)
+    out_band.SetNoDataValue(nodata_value)
+    out_band.WriteArray(sum_array)
 
-    print(f"Merged rasters saved to {os.path.join(output_folder, output_file)}")
+    out_band.FlushCache()
+    out_ds = None
 
-    # Close the raster sources
-    for src in raster_sources:
-        src.close()
+    print("Merging rasters complete.")
+
 
 
 def custom_gaussian_filter(in_array, ksize, sigma):
